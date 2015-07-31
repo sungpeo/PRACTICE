@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>picka.com</name>
+	<name>picka</name>
 	<comment></comment>
 	<projects>
 	</projects>
@@ -47,9 +47,15 @@
 	</natures>
 	<linkedResources>
 		<link>
-			<name>settings.xml</name>
+			<name>.settings.xml</name>
 			<type>1</type>
-			<locationURI>PARENT-4-PROJECT_LOC/Users/Sungpyo/.m2/settings.xml</locationURI>
+			<location>C:/Users/Sungpyo/.m2/.settings.xml</location>
 		</link>
 	</linkedResources>
+	<variableList>
+		<variable>
+			<name>copy_PARENT</name>
+			<value>$%7BPARENT-3-PROJECT_LOC%7D/Users/Sungpyo</value>
+		</variable>
+	</variableList>
 </projectDescription>
