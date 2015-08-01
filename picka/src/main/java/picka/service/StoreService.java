@@ -1,5 +1,7 @@
 package picka.service;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
@@ -11,6 +13,7 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 
+import picka.data.dao.Review;
 import picka.data.dao.Store;
 import picka.data.repository.StoreRepository;
 
@@ -70,4 +73,92 @@ public class StoreService {
 		
 		return storeList;
 	}
+	
+	public List<Store> getSecondStoreList(HttpServletRequest req){
+		String storeId = req.getParameter("storeId") == null ? "" : req.getParameter("storeId");
+		String majorCategory = req.getParameter("majorCategory") == null ? "" : req.getParameter("majorCategory");
+		int foodLevel = req.getParameter("foodLevel") == null ? 0 : Integer.parseInt(req.getParameter("foodLevel"));
+		int drinksCode = req.getParameter("drinksCode") == null ? 0 : Integer.parseInt(req.getParameter("drinksCode"));
+		double lat = req.getParameter("lat") == null ? 0 : Double.parseDouble(req.getParameter("lat"));
+		double lng = req.getParameter("lng") == null ? 0 : Double.parseDouble(req.getParameter("lng"));
+
+//		if("한식".equals(majorCategory)){
+//			majorCategory = "ko";
+//		}else if("중식".equals(majorCategory)){
+//			majorCategory = "ch";
+//		}else if("일식".equals(majorCategory)){
+//			majorCategory = "jp";
+//		}else if("양식".equals(majorCategory)){
+//			majorCategory = "ws";
+//		}else {
+//			majorCategory = "ac";
+//		}
+		
+		switch(majorCategory){
+		case "한식":
+			majorCategory = "ko";
+			break;
+
+		case "중식":
+			majorCategory = "ch";
+			break;
+		
+		case "일식":
+			majorCategory = "jp";
+			break;
+		
+		case "양식":
+			majorCategory = "ws";
+			break;
+		
+		default :
+			majorCategory = "ac";
+			
+		}
+		
+		
+		/* dynamic 쿼리 */
+		Query query = new Query();
+		
+		query.addCriteria(Criteria.where("storeId").ne(storeId));
+		if (!majorCategory.isEmpty()) {
+			query.addCriteria(Criteria.where("majorCategory").ne(majorCategory));
+		}
+
+		if (foodLevel >= 1) {
+			query.addCriteria(Criteria.where("foodLevel").lte(11 - foodLevel));
+		}
+
+		query.addCriteria(Criteria.where("drinksCode").gte(2));
+
+		query.addCriteria(Criteria.where("lat").gt(lat - 0.03).lt(lat + 0.03));
+
+		query.addCriteria(Criteria.where("lng").gt(lng - 0.03).lt(lng + 0.03));
+
+		logger.info(query.toString());
+		return mongoOps.find(query, Store.class);
+	}
+	
+	public List<Review> saveReview(HttpServletRequest req, Review review){
+		String storeId = req.getParameter("storeId");
+		Store s = storeRepository.findByStoreId(storeId);
+		if (s != null) {
+			if (s.getReview() != null) {
+				s.getReview().add(review);
+			} else {
+				List<Review> reviewList = new ArrayList<Review>();
+				reviewList.add(review);
+				s.setReview(reviewList);
+			}
+			s.setTotUser(s.getTotUser() + 1);
+			s.setTotPoint(s.getTotPoint() + review.getPoint());
+		}
+		storeRepository.save(s);
+		List<Review> resultList = storeRepository.findByStoreId(storeId).getReview();
+		if ((resultList != null) && (!resultList.isEmpty())) {
+			Collections.reverse(resultList);
+		}
+		return resultList;
+	}
+	
 }
